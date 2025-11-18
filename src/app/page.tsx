@@ -2,10 +2,21 @@
 
 import { useAuth } from './providers';
 import { createClient } from '@/lib/supabase/client';
+import { useTRPC } from '@/trpc/client';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { CreateRoomDialog } from '@/components/rooms/CreateRoomDialog';
+import { JoinRoomDialog } from '@/components/rooms/JoinRoomDialog';
+import { RoomCard } from '@/components/rooms/RoomCard';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
   const supabase = createClient();
+  const trpc = useTRPC();
+  const { data: rooms, isLoading: roomsLoading } = useQuery({
+    ...trpc.room.list.queryOptions(),
+    enabled: !!user,
+  });
 
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
@@ -34,24 +45,16 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <h1 className="text-2xl font-bold text-gray-900">BillShare</h1>
-            
+
             {user ? (
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-600">{user.email}</span>
-                <button
-                  onClick={signOut}
-                  className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-                >
+                <Button variant="ghost" onClick={signOut}>
                   Sign Out
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
-                onClick={signInWithGoogle}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                Sign In with Google
-              </button>
+              <Button onClick={signInWithGoogle}>Sign In with Google</Button>
             )}
           </div>
         </div>
@@ -60,10 +63,31 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {user ? (
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Your Rooms</h2>
-            <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
-              No rooms yet. Create or join one to get started.
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Your Rooms</h2>
+              <div className="flex gap-2">
+                <JoinRoomDialog />
+                <CreateRoomDialog />
+              </div>
             </div>
+
+            {roomsLoading ? (
+              <div className="text-center py-12 text-gray-400">Loading rooms...</div>
+            ) : rooms && rooms.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {rooms.map((room) => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    isOwner={room.ownerId === user?.id}
+            />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
+                No rooms yet. Create or join one to get started.
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-12">
@@ -73,15 +97,12 @@ export default function HomePage() {
             <p className="text-gray-600 mb-8">
               Create a room, add expenses, and see who owes what.
             </p>
-            <button
-              onClick={signInWithGoogle}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
+            <Button size="lg" onClick={signInWithGoogle}>
               Get Started
-            </button>
+            </Button>
           </div>
         )}
-      </div>
-    </main>
+        </div>
+      </main>
   );
 }

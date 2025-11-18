@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc';
+import { roomRouter } from './room';
 
 export const appRouter = createTRPCRouter({
   health: publicProcedure
@@ -18,6 +19,8 @@ export const appRouter = createTRPCRouter({
     });
     return user;
   }),
+
+  room: roomRouter,
 });
 
 export type AppRouter = typeof appRouter;
