@@ -1,9 +1,11 @@
 import { initTRPC } from '@trpc/server';
 import { ZodError } from 'zod';
+import { prisma } from '@/db/prisma';
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     headers: opts.headers,
+    db: prisma,
   };
 };
 
