@@ -1,11 +1,20 @@
-import { initTRPC } from '@trpc/server';
+import { initTRPC, TRPCError } from '@trpc/server';
 import { ZodError } from 'zod';
 import { prisma } from '@/db/prisma';
+import { createClient } from '@/lib/supabase/server';
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return {
     headers: opts.headers,
     db: prisma,
+    supabase,
+    user,
+    userId: user?.id,
   };
 };
 
@@ -25,4 +34,17 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
+
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.user || !ctx.userId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.user,
+      userId: ctx.userId,
+    },
+  });
+});
 

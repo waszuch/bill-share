@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc';
+import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc';
 
 export const appRouter = createTRPCRouter({
   health: publicProcedure
@@ -11,6 +11,13 @@ export const appRouter = createTRPCRouter({
         echo: input?.ping ?? null,
       };
     }),
+
+  me: protectedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.db.user.findUnique({
+      where: { id: ctx.userId },
+    });
+    return user;
+  }),
 });
 
 export type AppRouter = typeof appRouter;
