@@ -75,13 +75,10 @@ export function EditExpenseDialog({
     ...trpc.expense.update.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: trpc.expense.list.queryKey({ roomId }),
+        queryKey: trpc.expense.pathKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: trpc.room.list.queryKey(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: trpc.room.getById.queryKey({ id: roomId }),
+        queryKey: trpc.room.pathKey(),
       });
       toast.success('Expense updated successfully');
       onOpenChange(false);
@@ -148,7 +145,7 @@ export function EditExpenseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Expense</DialogTitle>
         </DialogHeader>

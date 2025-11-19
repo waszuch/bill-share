@@ -47,10 +47,10 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
     ...trpc.expense.create.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: trpc.expense.list.queryKey({ roomId }),
+        queryKey: trpc.expense.pathKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: trpc.room.list.queryKey(),
+        queryKey: trpc.room.pathKey(),
       });
       setOpen(false);
       setAmount('');
@@ -122,7 +122,7 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
       <DialogTrigger asChild>
         <Button>Add Expense</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>
         </DialogHeader>

@@ -48,7 +48,7 @@ export default function RoomPage() {
     ...trpc.room.delete.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: trpc.room.list.queryKey(),
+        queryKey: trpc.room.pathKey(),
       });
       toast.success('Room deleted successfully');
       router.push('/');
@@ -99,19 +99,19 @@ export default function RoomPage() {
     <main className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => router.push('/')}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 py-3 sm:py-0 sm:h-16">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <Button variant="ghost" size="sm" onClick={() => router.push('/')} className="shrink-0">
                 ← Back
               </Button>
-              <h1 className="text-2xl font-bold text-gray-900">{room.name}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{room.name}</h1>
             </div>
-            <div className="flex items-center gap-2">
-              <code className="px-3 py-1 bg-gray-100 rounded text-sm font-mono">
+            <div className="flex items-center gap-2 flex-wrap">
+              <code className="px-2 sm:px-3 py-1 bg-gray-100 rounded text-xs sm:text-sm font-mono">
                 {code}
               </code>
-              <Button variant="outline" size="sm" onClick={handleCopyCode}>
-                Copy Code
+              <Button variant="outline" size="sm" onClick={handleCopyCode} className="text-xs sm:text-sm">
+                Copy
               </Button>
               {isOwner && (
                 <Button
@@ -119,8 +119,9 @@ export default function RoomPage() {
                   size="sm"
                   onClick={handleDeleteRoom}
                   disabled={deleteRoomMutation.isPending}
+                  className="text-xs sm:text-sm"
                 >
-                  {deleteRoomMutation.isPending ? 'Deleting...' : 'Delete Room'}
+                  {deleteRoomMutation.isPending ? 'Deleting...' : 'Delete'}
                 </Button>
               )}
             </div>
@@ -128,11 +129,11 @@ export default function RoomPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Expenses</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Expenses</h2>
               <AddExpenseDialog roomId={room.id} participants={roomDetails.participants} />
             </div>
 

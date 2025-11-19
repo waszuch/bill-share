@@ -13,16 +13,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTRPC } from '@/trpc/client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function CreateRoomDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   
   const createRoom = useMutation({
     ...trpc.room.create.mutationOptions(),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.room.pathKey(),
+      });
       setName('');
       setOpen(false);
       toast.success('Room created successfully', {
@@ -47,7 +51,7 @@ export function CreateRoomDialog() {
       <DialogTrigger asChild>
         <Button>Create Room</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create a new room</DialogTitle>
         </DialogHeader>

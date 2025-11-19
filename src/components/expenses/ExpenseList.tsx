@@ -53,10 +53,10 @@ export function ExpenseList({
     ...trpc.expense.delete.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: trpc.expense.list.queryKey(),
+        queryKey: trpc.expense.pathKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: trpc.room.list.queryKey(),
+        queryKey: trpc.room.pathKey(),
       });
     },
     onError: (error) => {
@@ -81,23 +81,22 @@ export function ExpenseList({
     <>
       <div className="space-y-3">
         {expenses.map((expense) => {
-          // Only the user who created (paid for) the expense can edit/delete
           const canEdit = expense.paidBy === currentUserId;
 
           return (
             <Card key={expense.id}>
               <CardContent className="py-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-gray-900 break-words">
                         {expense.description}
                       </h3>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs sm:text-sm text-gray-500 shrink-0">
                         {expense.splitType.toLowerCase()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
                       Paid by {getUserName(expense.paidBy)}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
@@ -110,8 +109,8 @@ export function ExpenseList({
                       })}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-gray-900">
+                  <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                    <span className="text-base sm:text-lg font-bold text-gray-900">
                       {expense.amount.toFixed(2)} zł
                     </span>
                     {canEdit && (
@@ -121,6 +120,7 @@ export function ExpenseList({
                           size="sm"
                           onClick={() => setEditingExpense(expense)}
                           disabled={deleteExpenseMutation.isPending}
+                          className="text-xs sm:text-sm"
                         >
                           Edit
                         </Button>
@@ -129,6 +129,7 @@ export function ExpenseList({
                           size="sm"
                           onClick={() => handleDelete(expense.id)}
                           disabled={deleteExpenseMutation.isPending}
+                          className="text-xs sm:text-sm"
                         >
                           {deleteExpenseMutation.isPending ? '...' : 'Delete'}
                         </Button>

@@ -122,7 +122,7 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
           <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-1">Your balance</p>
             <p
-              className={`text-2xl font-bold ${
+              className={`text-xl sm:text-2xl font-bold ${
                 currentUserBalance.balance > 0.01
                   ? 'text-green-600'
                   : currentUserBalance.balance < -0.01
@@ -156,7 +156,7 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
                   return (
                     <div
                       key={idx}
-                      className={`flex items-center justify-between text-sm p-3 rounded-lg ${
+                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs sm:text-sm p-3 rounded-lg ${
                         isYouOwe
                           ? 'bg-red-50 border border-red-200'
                           : isOweYou
@@ -164,7 +164,7 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
                           : 'bg-gray-50'
                       }`}
                     >
-                      <span className="text-gray-900">
+                      <span className="text-gray-900 break-words">
                         {isYouOwe ? (
                           <>
                             You owe <strong>{getUserName(settlement.to)}</strong>
@@ -182,7 +182,7 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
                         )}
                       </span>
                       <span
-                        className={`font-semibold ${
+                        className={`font-semibold shrink-0 ${
                           isYouOwe
                             ? 'text-red-600'
                             : isOweYou
@@ -210,13 +210,13 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
                     .map((settlement, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded"
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs p-2 bg-gray-50 rounded"
                       >
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 break-words">
                           {getUserName(settlement.from)} →{' '}
                           {getUserName(settlement.to)}
                         </span>
-                        <span className="font-medium text-gray-700">
+                        <span className="font-medium text-gray-700 shrink-0">
                           {settlement.amount.toFixed(2)} zł
                         </span>
                       </div>

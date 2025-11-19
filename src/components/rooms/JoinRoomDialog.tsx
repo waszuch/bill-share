@@ -29,19 +29,14 @@ export function JoinRoomDialog() {
       setCode('');
       setOpen(false);
       
-      // Invalidate queries before navigation to ensure fresh data
       await queryClient.invalidateQueries({
-        queryKey: trpc.room.list.queryKey(),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: trpc.room.getById.queryKey({ id: data.id }),
+        queryKey: trpc.room.pathKey(),
       });
       
       toast.success('Joined room successfully', {
         description: data.name,
       });
       
-      // Small delay to ensure queries are invalidated
       setTimeout(() => {
         router.push(`/room/${data.code}`);
       }, 100);
@@ -64,7 +59,7 @@ export function JoinRoomDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Join Room</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Join a room</DialogTitle>
         </DialogHeader>

@@ -1,36 +1,14 @@
-import { MutationCache, QueryClient, type Query } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 
 export function makeQueryClient() {
-  let client: QueryClient;
-
-  return (client = new QueryClient({
+  return new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
         refetchOnWindowFocus: false,
       },
     },
-    mutationCache: new MutationCache({
-      onSuccess: (_data, _variables, _context, mutation) => {
-        const mutationKey = mutation.options.mutationKey?.[0];
-        
-        if (!mutationKey || typeof mutationKey !== 'string') return;
-
-        const [mutationResource] = mutationKey.split('.');
-        if (!mutationResource) return;
-
-        return client.invalidateQueries({
-          predicate: (query: Query) => {
-            const queryKeyParts = query.queryKey[0];
-            if (!queryKeyParts || typeof queryKeyParts !== 'string') return false;
-
-            const [resource] = queryKeyParts.split('.');
-            return resource === mutationResource;
-          },
-        });
-      },
-    }),
-  }));
+  });
 }
 
 let clientQueryClient: QueryClient | undefined = undefined;

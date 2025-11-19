@@ -48,23 +48,14 @@ export function useRoomRealtime({
           if (payload.eventType === 'INSERT') {
             await Promise.all([
               queryClient.invalidateQueries({
-                queryKey: trpc.expense.list.queryKey({ roomId }),
+                queryKey: trpc.expense.pathKey(),
+                refetchType: 'active',
               }),
               queryClient.invalidateQueries({
-                queryKey: trpc.room.getById.queryKey({ id: roomId }),
-              }),
-              queryClient.invalidateQueries({
-                queryKey: trpc.room.list.queryKey(),
+                queryKey: trpc.room.pathKey(),
+                refetchType: 'active',
               }),
             ]);
-            
-            // Force refetch to ensure data is fresh
-            await queryClient.refetchQueries({
-              queryKey: trpc.expense.list.queryKey({ roomId }),
-            });
-            await queryClient.refetchQueries({
-              queryKey: trpc.room.getById.queryKey({ id: roomId }),
-            });
 
             toast.success('New expense added', {
               description: payload.new.description,
@@ -72,23 +63,14 @@ export function useRoomRealtime({
           } else if (payload.eventType === 'DELETE') {
             await Promise.all([
               queryClient.invalidateQueries({
-                queryKey: trpc.expense.list.queryKey({ roomId }),
+                queryKey: trpc.expense.pathKey(),
+                refetchType: 'active',
               }),
               queryClient.invalidateQueries({
-                queryKey: trpc.room.getById.queryKey({ id: roomId }),
-              }),
-              queryClient.invalidateQueries({
-                queryKey: trpc.room.list.queryKey(),
+                queryKey: trpc.room.pathKey(),
+                refetchType: 'active',
               }),
             ]);
-            
-            // Force refetch
-            await queryClient.refetchQueries({
-              queryKey: trpc.expense.list.queryKey({ roomId }),
-            });
-            await queryClient.refetchQueries({
-              queryKey: trpc.room.getById.queryKey({ id: roomId }),
-            });
 
             toast.info('Expense deleted', {
               description: payload.old.description,
@@ -96,22 +78,17 @@ export function useRoomRealtime({
           } else if (payload.eventType === 'UPDATE') {
             await Promise.all([
               queryClient.invalidateQueries({
-                queryKey: trpc.expense.list.queryKey({ roomId }),
+                queryKey: trpc.expense.pathKey(),
+                refetchType: 'active',
               }),
               queryClient.invalidateQueries({
-                queryKey: trpc.room.getById.queryKey({ id: roomId }),
-              }),
-              queryClient.invalidateQueries({
-                queryKey: trpc.room.list.queryKey(),
+                queryKey: trpc.room.pathKey(),
+                refetchType: 'active',
               }),
             ]);
-            
-            // Force refetch
-            await queryClient.refetchQueries({
-              queryKey: trpc.expense.list.queryKey({ roomId }),
-            });
-            await queryClient.refetchQueries({
-              queryKey: trpc.room.getById.queryKey({ id: roomId }),
+
+            toast.info('Expense updated', {
+              description: payload.new.description,
             });
           }
         }
@@ -125,25 +102,11 @@ export function useRoomRealtime({
           filter: `roomId=eq.${roomId}`,
         },
         async (payload: RealtimeEvent) => {
-          // Always invalidate and refetch, even if it's the current user (for consistency)
-          await Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: trpc.room.getById.queryKey({ id: roomId }),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: trpc.room.list.queryKey(),
-            }),
-          ]);
-          
-          // Force refetch to ensure data is fresh
-          await queryClient.refetchQueries({
-            queryKey: trpc.room.getById.queryKey({ id: roomId }),
-          });
-          await queryClient.refetchQueries({
-            queryKey: trpc.room.list.queryKey(),
+          await queryClient.invalidateQueries({
+            queryKey: trpc.room.pathKey(),
+            refetchType: 'active',
           });
 
-          // Only show toast if it's not the current user
           if (payload.new.userId !== currentUserId) {
             toast.info('New participant joined');
           }
@@ -158,21 +121,9 @@ export function useRoomRealtime({
           filter: `roomId=eq.${roomId}`,
         },
         async () => {
-          await Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: trpc.room.getById.queryKey({ id: roomId }),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: trpc.room.list.queryKey(),
-            }),
-          ]);
-          
-          // Force refetch
-          await queryClient.refetchQueries({
-            queryKey: trpc.room.getById.queryKey({ id: roomId }),
-          });
-          await queryClient.refetchQueries({
-            queryKey: trpc.room.list.queryKey(),
+          await queryClient.invalidateQueries({
+            queryKey: trpc.room.pathKey(),
+            refetchType: 'active',
           });
         }
       )
@@ -185,21 +136,9 @@ export function useRoomRealtime({
           filter: `id=eq.${roomId}`,
         },
         async (payload: RealtimeEvent) => {
-          await Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: trpc.room.getById.queryKey({ id: roomId }),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: trpc.room.list.queryKey(),
-            }),
-          ]);
-          
-          // Force refetch
-          await queryClient.refetchQueries({
-            queryKey: trpc.room.getById.queryKey({ id: roomId }),
-          });
-          await queryClient.refetchQueries({
-            queryKey: trpc.room.list.queryKey(),
+          await queryClient.invalidateQueries({
+            queryKey: trpc.room.pathKey(),
+            refetchType: 'active',
           });
 
           if (payload.new.name !== payload.old.name) {

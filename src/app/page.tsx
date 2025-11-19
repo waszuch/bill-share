@@ -43,18 +43,22 @@ export default function HomePage() {
     <main className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">BillShare</h1>
+          <div className="flex justify-between items-center h-16 gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">BillShare</h1>
 
             {user ? (
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">{user.email}</span>
-                <Button variant="ghost" onClick={signOut}>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[120px] sm:max-w-none">
+                  {user.email}
+                </span>
+                <Button variant="ghost" size="sm" onClick={signOut} className="text-xs sm:text-sm">
                   Sign Out
                 </Button>
               </div>
             ) : (
-              <Button onClick={signInWithGoogle}>Sign In with Google</Button>
+              <Button onClick={signInWithGoogle} size="sm" className="text-xs sm:text-sm">
+                Sign In
+              </Button>
             )}
           </div>
         </div>
@@ -63,9 +67,9 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {user ? (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <h2 className="text-xl font-semibold text-gray-900">Your Rooms</h2>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <JoinRoomDialog />
                 <CreateRoomDialog />
               </div>
@@ -90,11 +94,11 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center py-12 px-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               Split bills with friends
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-sm sm:text-base text-gray-600 mb-8">
               Create a room, add expenses, and see who owes what.
             </p>
             <Button size="lg" onClick={signInWithGoogle}>
