@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -17,13 +19,23 @@ import { useMutation } from '@tanstack/react-query';
 export function JoinRoomDialog() {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState('');
+  const router = useRouter();
   const trpc = useTRPC();
   
   const joinRoom = useMutation({
     ...trpc.room.join.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: (data) => {
       setCode('');
       setOpen(false);
+      toast.success('Joined room successfully', {
+        description: data.name,
+      });
+      router.push(`/room/${data.code}`);
+    },
+    onError: (error) => {
+      toast.error('Failed to join room', {
+        description: error.message,
+      });
     },
   });
 
@@ -53,11 +65,6 @@ export function JoinRoomDialog() {
               disabled={joinRoom.isPending}
               maxLength={8}
             />
-            {joinRoom.error && (
-              <p className="text-sm text-red-600">
-                {joinRoom.error.message || 'Failed to join room'}
-              </p>
-            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button

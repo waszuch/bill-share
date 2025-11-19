@@ -2,6 +2,7 @@
 
 import { useTRPC } from '@/trpc/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -44,6 +45,11 @@ export function ExpenseList({ expenses, participants, currentUserId }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.expense.list.queryKey());
       queryClient.invalidateQueries(trpc.room.list.queryKey());
+    },
+    onError: (error) => {
+      toast.error('Failed to delete expense', {
+        description: error.message,
+      });
     },
   });
 

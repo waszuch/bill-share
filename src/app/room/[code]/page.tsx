@@ -4,11 +4,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { useTRPC } from '@/trpc/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { ExpenseList } from '@/components/expenses/ExpenseList';
 import { BalancesSummary } from '@/components/expenses/BalancesSummary';
+import { useRoomRealtime } from '@/hooks/useRoomRealtime';
 
 export default function RoomPage() {
   const params = useParams();
@@ -36,11 +38,21 @@ export default function RoomPage() {
     enabled: !!room?.id,
   });
 
+  useRoomRealtime({
+    roomId: room?.id || '',
+    enabled: !!room?.id,
+    currentUserId: user?.id,
+  });
+
   const deleteRoomMutation = useMutation({
     ...trpc.room.delete.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(trpc.room.list.queryKey());
+      toast.success('Room deleted successfully');
       router.push('/');
+    },
+    onError: () => {
+      toast.error('Failed to delete room');
     },
   });
 
@@ -52,6 +64,7 @@ export default function RoomPage() {
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
+    toast.success('Room code copied to clipboard');
   };
 
   if (authLoading || roomLoading) {

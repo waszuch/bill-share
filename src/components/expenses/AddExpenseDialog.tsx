@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTRPC } from '@/trpc/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,11 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
       setDescription('');
       setSplitType('EQUAL');
     },
+    onError: (error) => {
+      toast.error('Failed to add expense', {
+        description: error.message,
+      });
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,7 +62,7 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      alert('Please enter a valid amount');
+      toast.error('Please enter a valid amount');
       return;
     }
 

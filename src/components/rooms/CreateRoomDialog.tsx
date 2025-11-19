@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -21,9 +22,17 @@ export function CreateRoomDialog() {
   
   const createRoom = useMutation({
     ...trpc.room.create.mutationOptions(),
-    onSuccess: () => {
+    onSuccess: (data) => {
       setName('');
       setOpen(false);
+      toast.success('Room created successfully', {
+        description: `Room code: ${data.code}`,
+      });
+    },
+    onError: (error) => {
+      toast.error('Failed to create room', {
+        description: error.message,
+      });
     },
   });
 
