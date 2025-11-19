@@ -11,19 +11,26 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const isLocalEnv = process.env.NODE_ENV === 'development';
       
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
+      const forwardedHost = request.headers.get('x-forwarded-host');
+      const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+      
+      
+      const redirectUrl = forwardedHost 
+        ? `${forwardedProto}://${forwardedHost}${next}`
+        : `${origin}${next}`;
+      
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const errorRedirectUrl = forwardedHost 
+    ? `${forwardedProto}://${forwardedHost}/auth/auth-code-error`
+    : `${origin}/auth/auth-code-error`;
+  
+  return NextResponse.redirect(errorRedirectUrl);
 }
 
