@@ -1,5 +1,6 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Expense = {
@@ -130,9 +131,9 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
               }`}
             >
               {currentUserBalance.balance > 0.01
-                ? `+$${currentUserBalance.balance.toFixed(2)}`
+                ? `+${currentUserBalance.balance.toFixed(2)} zł`
                 : currentUserBalance.balance < -0.01
-                ? `-$${Math.abs(currentUserBalance.balance).toFixed(2)}`
+                ? `-${Math.abs(currentUserBalance.balance).toFixed(2)} zł`
                 : 'Settled up'}
             </p>
           </div>
@@ -141,29 +142,95 @@ export function BalancesSummary({ expenses, participants, currentUserId }: Props
         {settlements.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-2">
-              Suggested Settlements
+              Who owes whom
             </h4>
             <div className="space-y-2">
-              {settlements.map((settlement, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded"
-                >
-                  <span className="text-gray-900">
-                    {getUserName(settlement.from)} → {getUserName(settlement.to)}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    ${settlement.amount.toFixed(2)}
-                  </span>
-                </div>
-              ))}
+              {settlements
+                .filter(
+                  (s) =>
+                    s.from === currentUserId || s.to === currentUserId
+                )
+                .map((settlement, idx) => {
+                  const isYouOwe = settlement.from === currentUserId;
+                  const isOweYou = settlement.to === currentUserId;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between text-sm p-3 rounded-lg ${
+                        isYouOwe
+                          ? 'bg-red-50 border border-red-200'
+                          : isOweYou
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-gray-900">
+                        {isYouOwe ? (
+                          <>
+                            You owe <strong>{getUserName(settlement.to)}</strong>
+                          </>
+                        ) : isOweYou ? (
+                          <>
+                            <strong>{getUserName(settlement.from)}</strong> owes
+                            you
+                          </>
+                        ) : (
+                          <>
+                            {getUserName(settlement.from)} →{' '}
+                            {getUserName(settlement.to)}
+                          </>
+                        )}
+                      </span>
+                      <span
+                        className={`font-semibold ${
+                          isYouOwe
+                            ? 'text-red-600'
+                            : isOweYou
+                            ? 'text-green-600'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        {settlement.amount.toFixed(2)} zł
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
+            {settlements.filter(
+              (s) => s.from !== currentUserId && s.to !== currentUserId
+            ).length > 0 && (
+              <div className="mt-3 pt-3 border-t">
+                <p className="text-xs text-gray-500 mb-2">Other settlements:</p>
+                <div className="space-y-1">
+                  {settlements
+                    .filter(
+                      (s) =>
+                        s.from !== currentUserId && s.to !== currentUserId
+                    )
+                    .map((settlement, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded"
+                      >
+                        <span className="text-gray-600">
+                          {getUserName(settlement.from)} →{' '}
+                          {getUserName(settlement.to)}
+                        </span>
+                        <span className="font-medium text-gray-700">
+                          {settlement.amount.toFixed(2)} zł
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {settlements.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">
-            All settled up!
+          <div className="text-center py-4 text-gray-500 text-sm flex items-center justify-center gap-2">
+            <Check className="h-4 w-4 text-green-600" />
+            <span>All settled up!</span>
           </div>
         )}
       </CardContent>

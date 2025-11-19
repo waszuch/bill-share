@@ -72,7 +72,10 @@ export default function RoomPage() {
   if (authLoading || roomLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-400">Loading...</div>
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-gray-300 border-r-gray-900"></div>
+          <p className="mt-4 text-gray-400">Loading room...</p>
+        </div>
       </main>
     );
   }
@@ -117,7 +120,7 @@ export default function RoomPage() {
                   onClick={handleDeleteRoom}
                   disabled={deleteRoomMutation.isPending}
                 >
-                  Delete Room
+                  {deleteRoomMutation.isPending ? 'Deleting...' : 'Delete Room'}
                 </Button>
               )}
             </div>
@@ -134,14 +137,16 @@ export default function RoomPage() {
             </div>
 
             {expensesLoading ? (
-              <div className="text-center py-12 text-gray-400">
-                Loading expenses...
+              <div className="text-center py-12">
+                <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-gray-300 border-r-gray-900"></div>
+                <p className="mt-4 text-gray-400">Loading expenses...</p>
               </div>
             ) : expenses && expenses.length > 0 ? (
               <ExpenseList
                 expenses={expenses}
                 participants={roomDetails.participants}
                 currentUserId={user?.id || ''}
+                roomId={room.id}
               />
             ) : (
               <Card>

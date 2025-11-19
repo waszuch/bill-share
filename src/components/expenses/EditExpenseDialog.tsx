@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTRPC } from '@/trpc/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -9,12 +9,23 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+
+type Expense = {
+  id: string;
+  amount: number;
+  description: string;
+  paidBy: string;
+  splits: {
+    id: string;
+    userId: string;
+    amount: number;
+  }[];
+};
 
 type Participant = {
   id: string;
@@ -27,24 +38,41 @@ type Participant = {
 };
 
 type Props = {
-  roomId: string;
+  expense: Expense;
   participants: Participant[];
+  roomId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
-export function AddExpenseDialog({ roomId, participants }: Props) {
-  const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [paidBy, setPaidBy] = useState(participants[0]?.userId || '');
+export function EditExpenseDialog({
+  expense,
+  participants,
+  roomId,
+  open,
+  onOpenChange,
+}: Props) {
+  const [amount, setAmount] = useState(expense.amount.toString());
+  const [description, setDescription] = useState(expense.description);
+  const [paidBy, setPaidBy] = useState(expense.paidBy);
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(
-    new Set(participants.map((p) => p.userId))
+    new Set(expense.splits.map((s) => s.userId))
   );
+
+  useEffect(() => {
+    if (open) {
+      setAmount(expense.amount.toString());
+      setDescription(expense.description);
+      setPaidBy(expense.paidBy);
+      setSelectedParticipants(new Set(expense.splits.map((s) => s.userId)));
+    }
+  }, [expense, open]);
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const createExpenseMutation = useMutation({
-    ...trpc.expense.create.mutationOptions(),
+  const updateExpenseMutation = useMutation({
+    ...trpc.expense.update.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: trpc.expense.list.queryKey({ roomId }),
@@ -52,13 +80,14 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
       queryClient.invalidateQueries({
         queryKey: trpc.room.list.queryKey(),
       });
-      setOpen(false);
-      setAmount('');
-      setDescription('');
-      setSelectedParticipants(new Set(participants.map((p) => p.userId)));
+      queryClient.invalidateQueries({
+        queryKey: trpc.room.getById.queryKey({ id: roomId }),
+      });
+      toast.success('Expense updated successfully');
+      onOpenChange(false);
     },
     onError: (error) => {
-      toast.error('Failed to add expense', {
+      toast.error('Failed to update expense', {
         description: error.message,
       });
     },
@@ -107,8 +136,8 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
       amount: splitAmountPerPerson,
     }));
 
-    createExpenseMutation.mutate({
-      roomId,
+    updateExpenseMutation.mutate({
+      id: expense.id,
       amount: amountNum,
       description,
       paidBy,
@@ -118,13 +147,10 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Add Expense</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Expense</DialogTitle>
+          <DialogTitle>Edit Expense</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -212,12 +238,12 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createExpenseMutation.isPending}>
-              {createExpenseMutation.isPending ? 'Adding...' : 'Add Expense'}
+            <Button type="submit" disabled={updateExpenseMutation.isPending}>
+              {updateExpenseMutation.isPending ? 'Updating...' : 'Update Expense'}
             </Button>
           </div>
         </form>

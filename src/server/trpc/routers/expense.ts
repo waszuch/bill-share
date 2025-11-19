@@ -142,6 +142,118 @@ export const expenseRouter = createTRPCRouter({
       return expenses;
     }),
 
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        amount: z.number().positive().optional(),
+        description: z.string().min(1).max(200).optional(),
+        paidBy: z.string().optional(),
+        splitType: SplitTypeEnum.optional(),
+        splits: z
+          .array(
+            z.object({
+              userId: z.string(),
+              amount: z.number().nonnegative(),
+            })
+          )
+          .optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const expense = await ctx.db.expense.findUnique({
+        where: { id: input.id },
+        include: {
+          room: {
+            include: {
+              participants: true,
+            },
+          },
+        },
+      });
+
+      if (!expense) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Expense not found',
+        });
+      }
+
+      const isParticipant = expense.room.participants.some(
+        (p) => p.userId === ctx.userId
+      );
+
+      if (!isParticipant) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You are not a participant in this room',
+        });
+      }
+
+      if (expense.paidBy !== ctx.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only the user who created this expense can edit it',
+        });
+      }
+
+      const updateData: {
+        amount?: number;
+        description?: string;
+        paidBy?: string;
+        splitType?: string;
+      } = {};
+
+      if (input.amount !== undefined) updateData.amount = input.amount;
+      if (input.description !== undefined)
+        updateData.description = input.description;
+      if (input.paidBy !== undefined) updateData.paidBy = input.paidBy;
+      if (input.splitType !== undefined) updateData.splitType = input.splitType;
+
+      let splits = input.splits;
+
+      if (input.splitType === 'EQUAL' && input.amount) {
+        const participantCount = expense.room.participants.length;
+        const splitAmount = input.amount / participantCount;
+        splits = expense.room.participants.map((p) => ({
+          userId: p.userId,
+          amount: splitAmount,
+        }));
+      }
+
+      if (splits) {
+        const totalSplitAmount = splits.reduce((sum, s) => sum + s.amount, 0);
+        const expenseAmount = input.amount || expense.amount;
+        if (Math.abs(totalSplitAmount - expenseAmount) > 0.01) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Split amounts must sum to the total expense amount',
+          });
+        }
+      }
+
+      const updatedExpense = await ctx.db.expense.update({
+        where: { id: input.id },
+        data: {
+          ...updateData,
+          ...(splits && {
+            splits: {
+              deleteMany: {},
+              create: splits.map((s) => ({
+                userId: s.userId,
+                amount: s.amount,
+              })),
+            },
+          }),
+        },
+        include: {
+          splits: true,
+        },
+      });
+
+      return updatedExpense;
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -174,10 +286,10 @@ export const expenseRouter = createTRPCRouter({
         });
       }
 
-      if (expense.paidBy !== ctx.userId && expense.room.ownerId !== ctx.userId) {
+      if (expense.paidBy !== ctx.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Only the payer or room owner can delete this expense',
+          message: 'Only the user who created this expense can delete it',
         });
       }
 

@@ -14,23 +14,37 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTRPC } from '@/trpc/client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function JoinRoomDialog() {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState('');
   const router = useRouter();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   
   const joinRoom = useMutation({
     ...trpc.room.join.mutationOptions(),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setCode('');
       setOpen(false);
+      
+      // Invalidate queries before navigation to ensure fresh data
+      await queryClient.invalidateQueries({
+        queryKey: trpc.room.list.queryKey(),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: trpc.room.getById.queryKey({ id: data.id }),
+      });
+      
       toast.success('Joined room successfully', {
         description: data.name,
       });
-      router.push(`/room/${data.code}`);
+      
+      // Small delay to ensure queries are invalidated
+      setTimeout(() => {
+        router.push(`/room/${data.code}`);
+      }, 100);
     },
     onError: (error) => {
       toast.error('Failed to join room', {

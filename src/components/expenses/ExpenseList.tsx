@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useTRPC } from '@/trpc/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EditExpenseDialog } from './EditExpenseDialog';
 
 type Expense = {
   id: string;
@@ -34,9 +36,16 @@ type Props = {
   expenses: Expense[];
   participants: Participant[];
   currentUserId: string;
+  roomId: string;
 };
 
-export function ExpenseList({ expenses, participants, currentUserId }: Props) {
+export function ExpenseList({
+  expenses,
+  participants,
+  currentUserId,
+  roomId,
+}: Props) {
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -69,60 +78,80 @@ export function ExpenseList({ expenses, participants, currentUserId }: Props) {
   };
 
   return (
-    <div className="space-y-3">
-      {expenses.map((expense) => {
-        const canDelete =
-          expense.paidBy === currentUserId ||
-          participants.find((p) => p.userId === currentUserId)?.user.id ===
-            currentUserId;
+    <>
+      <div className="space-y-3">
+        {expenses.map((expense) => {
+          // Only the user who created (paid for) the expense can edit/delete
+          const canEdit = expense.paidBy === currentUserId;
 
-        return (
-          <Card key={expense.id}>
-            <CardContent className="py-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900">
-                      {expense.description}
-                    </h3>
-                    <span className="text-sm text-gray-500">
-                      {expense.splitType.toLowerCase()}
-                    </span>
+          return (
+            <Card key={expense.id}>
+              <CardContent className="py-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">
+                        {expense.description}
+                      </h3>
+                      <span className="text-sm text-gray-500">
+                        {expense.splitType.toLowerCase()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Paid by {getUserName(expense.paidBy)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(expense.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Paid by {getUserName(expense.paidBy)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(expense.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-gray-900">
+                      {expense.amount.toFixed(2)} zł
+                    </span>
+                    {canEdit && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingExpense(expense)}
+                          disabled={deleteExpenseMutation.isPending}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(expense.id)}
+                          disabled={deleteExpenseMutation.isPending}
+                        >
+                          {deleteExpenseMutation.isPending ? '...' : 'Delete'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-900">
-                    ${expense.amount.toFixed(2)}
-                  </span>
-                  {canDelete && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(expense.id)}
-                      disabled={deleteExpenseMutation.isPending}
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {editingExpense && (
+        <EditExpenseDialog
+          expense={editingExpense}
+          participants={participants}
+          roomId={roomId}
+          open={!!editingExpense}
+          onOpenChange={(open) => !open && setEditingExpense(null)}
+        />
+      )}
+    </>
   );
 }
 
