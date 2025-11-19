@@ -12,7 +12,7 @@ type Expense = {
   description: string;
   paidBy: string;
   splitType: string;
-  createdAt: Date;
+  createdAt: Date | string;
   splits: {
     id: string;
     userId: string;
@@ -43,8 +43,12 @@ export function ExpenseList({ expenses, participants, currentUserId }: Props) {
   const deleteExpenseMutation = useMutation({
     ...trpc.expense.delete.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.expense.list.queryKey());
-      queryClient.invalidateQueries(trpc.room.list.queryKey());
+      queryClient.invalidateQueries({
+        queryKey: trpc.expense.list.queryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.room.list.queryKey(),
+      });
     },
     onError: (error) => {
       toast.error('Failed to delete expense', {

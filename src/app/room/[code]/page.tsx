@@ -47,7 +47,9 @@ export default function RoomPage() {
   const deleteRoomMutation = useMutation({
     ...trpc.room.delete.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.room.list.queryKey());
+      queryClient.invalidateQueries({
+        queryKey: trpc.room.list.queryKey(),
+      });
       toast.success('Room deleted successfully');
       router.push('/');
     },

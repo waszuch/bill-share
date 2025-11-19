@@ -43,8 +43,12 @@ export function AddExpenseDialog({ roomId, participants }: Props) {
   const createExpenseMutation = useMutation({
     ...trpc.expense.create.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(trpc.expense.list.queryKey({ roomId }));
-      queryClient.invalidateQueries(trpc.room.list.queryKey());
+      queryClient.invalidateQueries({
+        queryKey: trpc.expense.list.queryKey({ roomId }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.room.list.queryKey(),
+      });
       setOpen(false);
       setAmount('');
       setDescription('');

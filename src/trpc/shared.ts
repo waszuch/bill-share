@@ -12,21 +12,20 @@ export function makeQueryClient() {
     },
     mutationCache: new MutationCache({
       onSuccess: (_data, _variables, _context, mutation) => {
-        const mutationKey = mutation.options.mutationKey?.[0] as string;
-        const queryKey = mutation.options.mutationKey?.[0] as string;
-
-        if (!mutationKey || !queryKey) return false;
+        const mutationKey = mutation.options.mutationKey?.[0];
+        
+        if (!mutationKey || typeof mutationKey !== 'string') return;
 
         const [mutationResource] = mutationKey.split('.');
-        const [queryResource] = queryKey.split('.');
+        if (!mutationResource) return;
 
         return client.invalidateQueries({
           predicate: (query: Query) => {
-            const queryKeyParts = query.queryKey[0] as string;
-            if (!queryKeyParts) return false;
+            const queryKeyParts = query.queryKey[0];
+            if (!queryKeyParts || typeof queryKeyParts !== 'string') return false;
 
             const [resource] = queryKeyParts.split('.');
-            return resource === mutationResource || resource === queryResource;
+            return resource === mutationResource;
           },
         });
       },

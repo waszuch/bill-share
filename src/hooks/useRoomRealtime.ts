@@ -50,6 +50,9 @@ export function useRoomRealtime({
               queryKey: trpc.expense.list.queryKey({ roomId }),
             });
             queryClient.invalidateQueries({
+              queryKey: trpc.room.getById.queryKey({ id: roomId }),
+            });
+            queryClient.invalidateQueries({
               queryKey: trpc.room.list.queryKey(),
             });
 
@@ -61,11 +64,24 @@ export function useRoomRealtime({
               queryKey: trpc.expense.list.queryKey({ roomId }),
             });
             queryClient.invalidateQueries({
+              queryKey: trpc.room.getById.queryKey({ id: roomId }),
+            });
+            queryClient.invalidateQueries({
               queryKey: trpc.room.list.queryKey(),
             });
 
             toast.info('Expense deleted', {
               description: payload.old.description,
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            queryClient.invalidateQueries({
+              queryKey: trpc.expense.list.queryKey({ roomId }),
+            });
+            queryClient.invalidateQueries({
+              queryKey: trpc.room.getById.queryKey({ id: roomId }),
+            });
+            queryClient.invalidateQueries({
+              queryKey: trpc.room.list.queryKey(),
             });
           }
         }
