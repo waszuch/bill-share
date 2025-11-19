@@ -47,7 +47,7 @@ export function RoomCard({ room, isOwner }: RoomCardProps) {
             <p className="font-semibold">{room._count.expenses}</p>
           </div>
         </div>
-        <Link href={`/room/${room.id}`}>
+        <Link href={`/room/${room.code}`}>
           <Button className="w-full">View Room</Button>
         </Link>
       </CardContent>
